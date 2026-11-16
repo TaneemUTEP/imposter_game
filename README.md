@@ -17,7 +17,7 @@ For native device development, run `npm start` and open the project with Expo Go
 
 ## Supabase setup
 
-Install the Supabase CLI, link this project to your Supabase project, and apply the migrations in `supabase/migrations` with `supabase db push`. Enable anonymous sign-ins and email confirmation in the Supabase Auth settings. The migrations create private avatar storage and server functions for room/game commands. After applying them, set `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` in `.env` and restart Expo.
+Install the Supabase CLI, link this project to your Supabase project, and apply the migrations in `supabase/migrations` with `supabase db push`. For guest room creation on the hosted project, enable **Allow anonymous sign-ins** under Supabase **Authentication → Sign In / Providers**. For local Supabase development, `supabase/config.toml` enables anonymous sign-ins. Email accounts are also available from the app's Account options. The migrations create private avatar storage and server functions for room/game commands. After applying them, set `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` in `.env` and restart Expo.
 
 The current round word-pair seed is a small starter set. Replace/expand it with the planned curated 150 word/hint pairs before public release. Run migrations and game commands against a dedicated development project first.
 

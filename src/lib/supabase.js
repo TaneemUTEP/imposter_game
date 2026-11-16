@@ -1,9 +1,30 @@
 import { createClient } from '@supabase/supabase-js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
-export const supabase = url && anonKey ? createClient(url, anonKey) : null;
+export const supabase = url && anonKey ? createClient(url, anonKey, {
+  auth: { storage: AsyncStorage, autoRefreshToken: true, persistSession: true, detectSessionInUrl: true },
+}) : null;
+
+export async function createEmailAccount(email, password, displayName) {
+  if (!supabase) throw new Error('BACKEND_NOT_CONFIGURED');
+  const emailRedirectTo = typeof window !== 'undefined' ? window.location.origin : undefined;
+  const { data, error } = await supabase.auth.signUp({
+    email: email.trim(), password,
+    options: { data: { display_name: displayName.trim() }, emailRedirectTo },
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function signInWithEmail(email, password) {
+  if (!supabase) throw new Error('BACKEND_NOT_CONFIGURED');
+  const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+  if (error) throw error;
+  return data;
+}
 
 export async function ensureGuestSession() {
   if (!supabase) throw new Error('BACKEND_NOT_CONFIGURED');

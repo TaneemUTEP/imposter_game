@@ -11,8 +11,9 @@ major_version = 17
 
 [auth]
 enabled = true
-site_url = "http://localhost:8081"
-additional_redirect_urls = ["http://localhost:8081"]
+enable_anonymous_sign_ins = true
+site_url = "https://impostergame-eight-navy.vercel.app"
+additional_redirect_urls = ["http://localhost:8081", "https://impostergame-eight-navy.vercel.app"]
 enable_signup = true
 
 [auth.email]
