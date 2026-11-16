@@ -1,0 +1,14 @@
+{
+  "expo": {
+    "name": "Imposter",
+    "slug": "imposter",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": { "backgroundColor": "#FFFCF7" },
+    "ios": { "supportsTablet": true, "bundleIdentifier": "com.imposter.party" },
+    "android": { "package": "com.imposter.party", "adaptiveIcon": { "backgroundColor": "#FFFCF7" } },
+    "web": { "bundler": "metro", "name": "Imposter" },
+    "assetBundlePatterns": ["**/*"]
+  }
+}
