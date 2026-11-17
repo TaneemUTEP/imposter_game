@@ -38,8 +38,18 @@ export async function ensureGuestSession() {
 
 export async function createRoom(displayName) {
   await ensureGuestSession();
-  const { data, error } = await supabase.rpc('create_room', { p_display_name: displayName.trim() });
+  const commandKey = 'pending-room-create-command';
+  let commandId = await AsyncStorage.getItem(commandKey);
+  if (!commandId) {
+    commandId = globalThis.crypto?.randomUUID?.() || 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = Math.random() * 16 | 0;
+      return (c === 'x' ? r : (r & 3 | 8)).toString(16);
+    });
+    await AsyncStorage.setItem(commandKey, commandId);
+  }
+  const { data, error } = await supabase.rpc('create_room', { p_display_name: displayName.trim(), p_command_id: commandId });
   if (error) throw error;
+  await AsyncStorage.removeItem(commandKey);
   return data;
 }
 
@@ -61,8 +71,8 @@ export async function setReady(roomId, ready) {
   if (error) throw error;
 }
 
-export async function updateRoomSettings(roomId, mode, imposters) {
-  const { error } = await supabase.rpc('update_room_settings', { p_room: roomId, p_mode: mode, p_imposters: imposters });
+export async function updateRoomSettings(roomId, mode, imposters, categories) {
+  const { error } = await supabase.rpc('update_room_settings', { p_room: roomId, p_mode: mode, p_imposters: imposters, p_categories: categories });
   if (error) throw error;
 }
 
