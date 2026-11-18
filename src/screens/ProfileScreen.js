@@ -8,6 +8,13 @@ import { getAuthErrorMessage } from '../lib/authErrors';
 import { createEmailAccount, signInWithEmail, supabase } from '../lib/supabase';
 import { useTheme } from '../theme/ThemeContext';
 
+/**
+ * Account and profile view for anonymous guests and email accounts.
+ * Profile data and statistics come from Supabase; form values and upload
+ * previews stay local until the corresponding save action succeeds.
+ *
+ * @param {{ initialName?: string, onAccountReady: (name: string) => void, onClose: () => void }} props
+ */
 export function ProfileScreen({ initialName = '', onAccountReady, onClose }) {
   const { palette } = useTheme();
   const styles = createStyles(palette);
@@ -24,6 +31,7 @@ export function ProfileScreen({ initialName = '', onAccountReady, onClose }) {
 
   useEffect(() => { loadProfile(); }, []);
 
+  /** Load the persisted auth session, profile metrics, and a signed avatar URL. */
   async function loadProfile() {
     if (!supabase) {
       setMessage('Online accounts are not configured yet. Please try again later.');
@@ -54,6 +62,7 @@ export function ProfileScreen({ initialName = '', onAccountReady, onClose }) {
     }
   }
 
+  /** Create an email account or sign into one, then return control to App. */
   async function submitAccount() {
     setBusy(true);
     setMessage('');
@@ -79,6 +88,7 @@ export function ProfileScreen({ initialName = '', onAccountReady, onClose }) {
     }
   }
 
+  /** Save the profile name through its owner-checked database RPC. */
   async function saveName() {
     if (!profile?.id) {
       setMessage('Your name will be saved when you create or join your first room.');
@@ -98,6 +108,10 @@ export function ProfileScreen({ initialName = '', onAccountReady, onClose }) {
     }
   }
 
+  /**
+   * Select, square-crop, resize, compress, and upload an avatar.
+   * The server bucket is private; the stored path is not a public image URL.
+   */
   async function choosePhoto() {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
@@ -128,6 +142,7 @@ export function ProfileScreen({ initialName = '', onAccountReady, onClose }) {
     }
   }
 
+  /** Upgrade the current anonymous identity so its profile/stats stay attached. */
   async function saveGuestAccount() {
     setBusy(true);
     setMessage('');
@@ -147,6 +162,7 @@ export function ProfileScreen({ initialName = '', onAccountReady, onClose }) {
     onClose();
   }
 
+  /** Require platform confirmation before invoking the account-deletion RPC. */
   async function deleteAccount() {
     const remove = async () => {
       setBusy(true);
@@ -211,6 +227,7 @@ export function ProfileScreen({ initialName = '', onAccountReady, onClose }) {
   );
 }
 
+/** One label/value row used by the compact profile statistics panel. */
 function Metric({ label, value }) {
   const { palette } = useTheme();
   const styles = createStyles(palette);

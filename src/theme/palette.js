@@ -1,3 +1,4 @@
+/** Base light-mode colors and shared spacing/radius tokens for UI components. */
 export const palette = {
   ink: '#25243A',
   muted: '#77758B',

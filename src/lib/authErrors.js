@@ -1,3 +1,4 @@
+/** Convert Supabase auth/setup errors into short player-facing guidance. */
 export function getAuthErrorMessage(error) {
   const code = String(error?.code || '').toLowerCase();
   const message = String(error?.message || '').toLowerCase();

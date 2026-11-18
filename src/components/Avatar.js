@@ -1,3 +1,4 @@
+/** Small fallback avatar used when a screen does not render the stored profile photo. */
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';

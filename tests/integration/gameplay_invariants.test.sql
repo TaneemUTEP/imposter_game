@@ -1,3 +1,4 @@
+-- pgTAP schema/seed invariants. Run only against an isolated local/staging DB.
 begin;
 select plan(8);
 

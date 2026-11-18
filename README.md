@@ -6,6 +6,12 @@ A word based social deduction game for web, iOS, and Android. The product rules 
 
 The app includes guest room creation/joining, lobby controls, private role delivery, clue and vote rounds, three scoring modes, result reveal, profiles, and Supabase migrations. Live online use requires the Supabase migrations to be applied.
 
+## Code documentation
+
+- [`notes/codebase-guide.md`](notes/codebase-guide.md) explains the source files, client/server boundaries, room and round flow, database functions, migrations, and current implementation caveats.
+- [`notes/implementation-outline.md`](notes/implementation-outline.md) describes the product and planned behavior.
+- [`notes/changes-made.md`](notes/changes-made.md) records the implementation changes made so far.
+
 ## Start
 
 ```sh

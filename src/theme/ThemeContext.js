@@ -17,6 +17,7 @@ const palettes = {
   },
 };
 
+/** Provide the selected palette and persisted theme toggle to the app tree. */
 export function ThemeProvider({ children }) {
   const [mode, setMode] = useState('light');
 
@@ -38,6 +39,7 @@ export function ThemeProvider({ children }) {
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
+/** Access the active theme; throws if rendered outside ThemeProvider. */
 export function useTheme() {
   const theme = useContext(ThemeContext);
   if (!theme) throw new Error('useTheme must be used inside ThemeProvider');

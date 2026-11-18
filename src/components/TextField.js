@@ -3,6 +3,7 @@ import { StyleSheet, TextInput } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { radius } from '../theme/palette';
 
+/** Theme-aware TextInput wrapper; forwards native TextInput props unchanged. */
 export function TextField({ accessibilityLabel, style, ...props }) {
   const { palette } = useTheme();
   const styles = createStyles(palette);

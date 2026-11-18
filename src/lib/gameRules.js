@@ -1,6 +1,14 @@
 const SCORING_MODES = new Set(['team', 'partial', 'deception']);
 
-/** Reference scorer for client presentation and rules tests. Database results remain authoritative. */
+/**
+ * Reference scorer for unit tests and presentation logic. PostgreSQL's
+ * finalize_round() is the production authority; keep this aligned with the
+ * scoring contract in notes/imposter-app-plan.md.
+ *
+ * @param {{ players: string[], imposters: string[], ballots: {voterId: string, suspects: string[]}[], mode: string }} input
+ * @returns {Record<string, {isImposter: boolean, caught: boolean|null, hits: number, fooled: number, correct: number, pointsHalfUnits: number}>}
+ * @throws {Error} Stable rule code when roster or ballot data is invalid.
+ */
 function calculateRoundResults({ players, imposters, ballots, mode }) {
   if (!Array.isArray(players) || players.length < 4 || players.length > 8) throw new Error('ROOM_SIZE_INVALID');
   if (!Array.isArray(imposters) || imposters.length < 1 || imposters.length > 2 || imposters.length >= players.length) {

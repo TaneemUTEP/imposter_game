@@ -70,6 +70,8 @@ begin
   end if;
 end $$;
 
+-- Lock the room while seating waitlisted players and snapshotting the next round.
+-- Role assignments and the selected word stay in private tables/RPC results.
 create or replace function public.start_round(p_room uuid)
 returns uuid language plpgsql security definer set search_path = '' as $$
 declare v_room public.rooms; v_match uuid; v_round uuid; v_number int; v_word text; v_hint text;
@@ -175,6 +177,8 @@ begin
   return r.version;
 end $$;
 
+-- Persist scoring and the reveal payload once. Civilian hits are the only votes
+-- that count as catching an imposter; retries must not award points twice.
 create or replace function public.finalize_round(p_round uuid)
 returns void language plpgsql security definer set search_path = '' as $$
 declare r public.rounds; mode public.scoring_mode; k int; civilians int; pl record; hits int; correct int; caught bool; pts numeric; reveal_duration interval;
@@ -207,6 +211,8 @@ begin
   update public.rounds set phase='results',version=version+1 where id=p_round;
 end $$;
 
+-- Reveal one role at a time using server timestamps, then finalize when the
+-- configured reveal interval has elapsed. Clients only animate presentation.
 create or replace function public.advance_reveal(p_round uuid)
 returns void language plpgsql security definer set search_path = '' as $$
 declare r public.rounds; k int; duration interval;

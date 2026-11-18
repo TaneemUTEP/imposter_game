@@ -2,6 +2,7 @@ import React from 'react';
 import { Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 
+/** Accessible control that switches the app-wide persisted theme palette. */
 export function ThemeToggle() {
   const { mode, palette, toggleTheme } = useTheme();
   const nextMode = mode === 'light' ? 'dark' : 'light';

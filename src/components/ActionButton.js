@@ -3,6 +3,7 @@ import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { radius } from '../theme/palette';
 
+/** Shared accessible action control; `secondary` renders a bordered card style. */
 export function ActionButton({ label, color, onPress, secondary = false, disabled = false }) {
   const { palette } = useTheme();
   const styles = createStyles(palette);

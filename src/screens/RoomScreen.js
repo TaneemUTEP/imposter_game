@@ -5,9 +5,24 @@ import { useTheme } from '../theme/ThemeContext';
 import { ActionButton } from '../components/ActionButton';
 import { roomSnapshot, setReady, updateRoomSettings, startRound, privateRound, acknowledgeRole, submitClue, submitBallot, chooseContinuation, advanceContinuation, advanceReveal, finishMatch, maintainRoom, leaveRoom, supabase } from '../lib/supabase';
 
+/**
+ * Renders the live room from server snapshots. PostgreSQL owns membership,
+ * turns, votes, phase transitions, and scores; this component holds only the
+ * current snapshot and temporary form/animation state.
+ *
+ * Server phases render as: roles -> clues -> voting -> continue_vote -> reveal
+ * -> results. `aborted` and a finished match return to the lobby panel. A
+ * player's secret is fetched separately and must never be added to the shared
+ * snapshot shape.
+ *
+ * @param {{ room: { id: string, code?: string }, onLeave: () => void }} props
+ *   Room identity from the create/join RPC and the app-level exit callback.
+ */
 export function RoomScreen({ room, onLeave }) {
   const { palette } = useTheme();
   const styles = createStyles(palette);
+  // Server-backed state is refreshed over Realtime and polling. `secret` is
+  // fetched separately so the public room snapshot never carries private roles.
   const [snapshot, setSnapshot] = useState(null);
   const [me, setMe] = useState(null);
   const [secret, setSecret] = useState(null);
@@ -17,8 +32,14 @@ export function RoomScreen({ room, onLeave }) {
   const [busy, setBusy] = useState(false);
   const [matchTitles,setMatchTitles]=useState(null);
   const [rouletteIndex,setRouletteIndex]=useState(0);
+  // A saved ballot is copied into editable UI state once when a new round opens.
   const loadedVoteRound=useRef(null);
 
+  /**
+   * Pull the authorized room snapshot, then fetch only this player's role.
+   * Deadline transitions are requested by connected clients but are guarded
+   * and finalized idempotently by the database.
+   */
   const refresh = useCallback(async () => {
     try {
       const state = await roomSnapshot(room.id);
@@ -49,6 +70,8 @@ export function RoomScreen({ room, onLeave }) {
     } catch (cause) { setError(cause.message || 'Could not refresh the room.'); }
   }, [room.id]);
 
+  // Private Postgres Changes wake connected players quickly. Heartbeat/reconcile
+  // maintains presence; the separate polling effect below is the offline fallback.
   useEffect(() => {
     refresh();
     const channel = supabase.channel(`room:${room.id}`, { config: { private: true } })
@@ -62,6 +85,7 @@ export function RoomScreen({ room, onLeave }) {
     return () => { clearInterval(heartbeat); appState.remove(); supabase.removeChannel(channel); };
   }, [room.id, refresh]);
 
+  // Poll faster while a shared deadline/reveal timer is in progress.
   useEffect(()=>{
     const phase=snapshot?.round?.phase;
     const interval=phase==='reveal'||phase==='continue_vote'?1000:5000;
@@ -69,12 +93,14 @@ export function RoomScreen({ room, onLeave }) {
     return()=>clearInterval(timer);
   },[snapshot?.round?.phase,refresh]);
 
+  // The carousel is presentation only; role order and reveal timing come from SQL.
   useEffect(()=>{
     if(snapshot?.round?.phase!=='reveal')return;
     const timer=setInterval(()=>setRouletteIndex(index=>(index+1)%Math.max(1,snapshot.members.length)),120);
     return()=>clearInterval(timer);
   },[snapshot?.round?.phase,snapshot?.members?.length]);
 
+  /** Run one user action with common busy/error handling and refresh on success. */
   async function act(operation) {
     setBusy(true); setError('');
     try { await operation(); await refresh(); }
@@ -91,7 +117,10 @@ export function RoomScreen({ room, onLeave }) {
   const seats = [...members].sort((left,right)=>left.seat-right.seat);
   const startIndex = seats.findIndex(member=>member.id===round?.starting_user);
   const clueCount = round?.clues?.filter(item=>item.pass===round.clue_pass).length || 0;
+  // The backend uses the same stable seat order and rotates its start each pass.
   const activeCluePlayer = startIndex<0 ? null : seats[(startIndex+clueCount)%seats.length];
+  // Results remain visible during an active match. Once the host ends it, the
+  // same room returns to its lobby so settings can be changed for a new match.
   const showLobby = !round || round.phase === 'aborted' || (round.phase === 'results' && round.match_status === 'finished');
 
   return <ScrollView contentContainerStyle={styles.page}>

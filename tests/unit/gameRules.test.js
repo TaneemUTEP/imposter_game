@@ -2,6 +2,8 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { calculateRoundResults } = require('../../src/lib/gameRules');
 
+// Use fixed eight- and seven-player examples so majority boundaries and
+// half-point scoring can be checked without a database or random assignments.
 const players = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 const imposters = ['A', 'B'];
 const ballots = [

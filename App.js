@@ -13,10 +13,16 @@ import { ProfileScreen } from './src/screens/ProfileScreen';
 
 const NAME_KEY = 'imposter.player-name';
 
+/** Root composition: provides theme state to the landing, room, and profile views. */
 export default function App() {
   return <ThemeProvider><AppContent /></ThemeProvider>;
 }
 
+/**
+ * Small screen coordinator for the app's top-level flow.
+ * Room/game state lives in RoomScreen; this component only switches between
+ * the landing page, account/profile page, and the currently joined room.
+ */
 function AppContent() {
   const { palette, mode } = useTheme();
   const styles = makeStyles(palette);
@@ -33,17 +39,20 @@ function AppContent() {
     }).catch(() => {});
   }, []);
 
+  /** Keep the chosen display name available on this device between launches. */
   function updateName(value) {
     setName(value);
     AsyncStorage.setItem(NAME_KEY, value).catch(() => {});
   }
 
+  /** Return from account setup and adopt the account's display name locally. */
   function useAccountName(accountName) {
     if (accountName) updateName(accountName);
     setShowProfile(false);
     setMessage('You’re signed in. Your name will be used when you create or join a room.');
   }
 
+  /** Create a backend room and route into its live lobby. */
   async function createRoom() {
     if (!name.trim()) return setMessage('Add your name first so friends know who opened the room.');
     setBusy(true);
@@ -52,6 +61,7 @@ function AppContent() {
     finally { setBusy(false); }
   }
 
+  /** Validate the six-character input before asking Supabase to join the room. */
   async function joinRoom() {
     if (!name.trim()) return setMessage('Add your name before joining.');
     if (code.trim().length !== 6) return setMessage('Enter the six-character room code.');

@@ -1,4 +1,6 @@
 -- The row lock serializes votes. Phase, not a client version, is the final-vote lock.
+-- Serialize ballot writes on the round row. The server phase, not a stale
+-- client version, decides whether another edit is still allowed.
 create or replace function public.submit_ballot(p_round uuid,p_suspects uuid[],p_version bigint)
 returns bigint language plpgsql security definer set search_path = '' as $$
 declare r public.rounds; k int; n int;
@@ -19,6 +21,8 @@ begin
   return r.version;
 end $$;
 
+-- Choices remain editable until the shared deadline; advancement is a separate
+-- retry-safe operation so simultaneous clients cannot disagree on the outcome.
 create or replace function public.choose_more_clues(p_round uuid,p_choice text,p_version bigint)
 returns text language plpgsql security definer set search_path = '' as $$
 declare r public.rounds;
@@ -34,6 +38,8 @@ begin
   return 'waiting';
 end $$;
 
+-- Resolve after the deadline using strict majority. Missing votes count as
+-- reveal, and the row lock makes concurrent advancement calls safe.
 create or replace function public.advance_continuation(p_round uuid)
 returns text language plpgsql security definer set search_path = '' as $$
 declare r public.rounds; n int; more_count int;

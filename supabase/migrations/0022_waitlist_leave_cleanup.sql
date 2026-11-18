@@ -1,3 +1,6 @@
+-- Explicit leave removes the caller from room membership. Abort an unfinished
+-- round rather than allowing a missing player to deadlock its phase; close an
+-- empty room and safely hand host ownership to a remaining seated member.
 create or replace function public.leave_room(p_room uuid)
 returns void language plpgsql security definer set search_path = '' as $$
 declare r public.rooms; next_host uuid;
@@ -27,6 +30,8 @@ begin
   if not exists(select 1 from public.room_members where room_id=p_room) then update public.rooms set status='closed' where id=p_room; end if;
 end $$;
 
+-- Return only the authenticated caller's role/secret details after verifying
+-- membership in this round's frozen roster. Never expose other roles here.
 create or replace function public.get_private_round(p_round uuid)
 returns jsonb language plpgsql stable security definer set search_path = '' as $$
 declare role_row public.round_roles; secret_row public.round_secrets; round_row public.rounds; duration interval; k int;

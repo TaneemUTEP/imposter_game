@@ -1,7 +1,13 @@
+/**
+ * Reference game-contract helpers. The React Native app currently calls
+ * Supabase RPCs directly and does not import this module; PostgreSQL remains
+ * authoritative. Keep these helpers aligned if a server caller is added.
+ */
 export const MIN_PLAYERS = 4;
 export const MAX_PLAYERS = 8;
 export const MAX_IMPOSTERS = 2;
 
+/** Validate the planned room-size and imposter-count bounds. */
 export function validateRoomSize(playerCount, imposterCount) {
   if (!Number.isInteger(playerCount) || playerCount < MIN_PLAYERS || playerCount > MAX_PLAYERS) {
     throw new Error('ROOM_SIZE_INVALID');
@@ -12,6 +18,7 @@ export function validateRoomSize(playerCount, imposterCount) {
   return true;
 }
 
+/** Validate the contract's one-word clue shape and exact secret-word match. */
 export function normalizeClue(value, secretWord) {
   const clue = String(value ?? '').trim();
   if (!clue || clue.length > 30 || /\s/.test(clue) || /https?:\/\//i.test(clue)) throw new Error('CLUE_INVALID');
@@ -21,6 +28,7 @@ export function normalizeClue(value, secretWord) {
   return clue;
 }
 
+/** Compute reference points/catch counts; persisted production scores come from SQL. */
 export function scoreRound({ players, imposters, ballots, mode }) {
   const impostersSet = new Set(imposters);
   if (impostersSet.size === 0 || impostersSet.size >= players.length) throw new Error('IMPOSTER_COUNT_INVALID');
@@ -47,6 +55,7 @@ export function scoreRound({ players, imposters, ballots, mode }) {
   return { points, caught, hits, fooled: Object.fromEntries([...impostersSet].map(id => [id, civilians.length - hits[id]])) };
 }
 
+/** Apply the strict-majority rule to continuation choices. */
 export function shouldContinueClues(choices, playerCount) {
   return Object.values(choices).filter(choice => choice === 'more').length > playerCount / 2;
 }
